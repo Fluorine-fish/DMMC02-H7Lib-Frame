@@ -7,6 +7,7 @@
 *   @note 1. 增加变速积分
 */
 #include "Alg_Pid.h"
+#include "arm_math.h"
 
 float Pid::Calc(float target, float now) {
     Target = target;
@@ -14,7 +15,7 @@ float Pid::Calc(float target, float now) {
     // 误差
     Error = Target - Now;
     // 绝对值误差
-    float abs_error = abs(Error);
+    float abs_error = std::abs(Error);
     // 判断死区
     if (abs_error < Dead_Zone) {
         Target = Now;

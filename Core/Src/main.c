@@ -27,7 +27,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "globalInit.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -84,9 +84,6 @@ int main(void)
   /* Enable I-Cache---------------------------------------------------------*/
   SCB_EnableICache();
 
-  /* Enable D-Cache---------------------------------------------------------*/
-  SCB_EnableDCache();
-
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
@@ -115,7 +112,7 @@ int main(void)
   MX_UART5_Init();
   MX_USART10_UART_Init();
   /* USER CODE BEGIN 2 */
-
+  Global_Init();
   /* USER CODE END 2 */
 
   /* Init scheduler */

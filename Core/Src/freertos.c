@@ -65,7 +65,14 @@ const osThreadAttr_t RobiticsAlgTask_attributes = {
   .cb_size = sizeof(RobiticsAlgTaskControlBlock),
   .stack_mem = &RobiticsAlgTaskBuffer[0],
   .stack_size = sizeof(RobiticsAlgTaskBuffer),
-  .priority = (osPriority_t) osPriorityAboveNormal1,
+  .priority = (osPriority_t) osPriorityNormal7,
+};
+/* Definitions for Chassis_Task */
+osThreadId_t Chassis_TaskHandle;
+const osThreadAttr_t Chassis_Task_attributes = {
+  .name = "Chassis_Task",
+  .stack_size = 1024 * 4,
+  .priority = (osPriority_t) osPriorityAboveNormal,
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -75,6 +82,7 @@ const osThreadAttr_t RobiticsAlgTask_attributes = {
 
 void App_DebugTask(void *argument);
 extern void App_RobiticsAlgTask(void *argument);
+extern void App_ChassisTask(void *argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -118,6 +126,9 @@ void MX_FREERTOS_Init(void) {
 
   /* creation of RobiticsAlgTask */
   RobiticsAlgTaskHandle = osThreadNew(App_RobiticsAlgTask, NULL, &RobiticsAlgTask_attributes);
+
+  /* creation of Chassis_Task */
+  Chassis_TaskHandle = osThreadNew(App_ChassisTask, NULL, &Chassis_Task_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */

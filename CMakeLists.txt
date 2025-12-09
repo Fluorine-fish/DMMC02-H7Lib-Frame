@@ -65,6 +65,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     UserLib/Components/Algorithm/Robotics/Inc/
     UserLib/Components/Algorithm/Pid/
     UserLib/Components/Motor/Dji/
+    UserLib/Components/Device/Chassis
 )
 
 # Add project symbols (macros)

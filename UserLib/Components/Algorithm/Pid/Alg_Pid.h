@@ -14,16 +14,40 @@ typedef enum {
     PID_DFIRST_OFF = 0,
 } DFirst_Enable_e;
 
+typedef struct alignas(4){
+    float kp;
+    float ki;
+    float kd;
+    float i_out_max;
+    float out_max;
 
-class Pid {
+    float i_separate_threshold{0.0f};
+    float dead_zone{0.0f};
+    float T{0.001f};
+    DFirst_Enable_e dfirst_enable{PID_DFIRST_ON};
+}PIDParam_s;
+
+class alignas(4) Pid {
 public:
-    // 不允许空构造，必须填入基本参数
+    // 不允许空构造，必须填入PID基本参数
     Pid() = delete;
 
+    // 使用结构体初始化
+    explicit Pid(const PIDParam_s& config)
+        : T(config.T),
+          Dead_Zone(config.dead_zone),
+          DFirst(config.dfirst_enable),
+          Kp(config.kp),
+          Ki(config.ki),
+          Kd(config.kd),
+          I_Out_Max(config.i_out_max),
+          Out_Max(config.out_max),
+          I_Separate_Threshold(config.i_separate_threshold) {};
+
     Pid(float _kp, float _ki, float _kd, float _i_Out_Max, float _out_Max,
-        float _i_Separate_Threshold = 0.0f, float _dead_zone = 0.0f, float _T = 0.001f,
+        float _i_Separate_Threshold = 0.0f, float _dead_zone = 0.0f, float _t = 0.001f,
         DFirst_Enable_e _dFirst_Enable = PID_DFIRST_ON)
-        : T(_T),
+        : T(_t),
           Dead_Zone(_dead_zone),
           DFirst(_dFirst_Enable),
           Kp(_kp),
@@ -32,8 +56,15 @@ public:
           I_Out_Max(_i_Out_Max),
           Out_Max(_out_Max),
           I_Separate_Threshold(_i_Separate_Threshold) {}
+    float Get_Output() {return this->Output;}
 
-    float Get_Output() {return this->Output;};
+    /**
+     * @brief 清除PID积分和误差
+     */
+    void Clear() {
+        this->Integral_Error = 0.0f;
+        this->Error = 0.0f;
+    }
 
     // 设置采样周期
     void Set_T(float _T) {this->T = _T;};
@@ -67,11 +98,6 @@ protected:
     float Now{0.0f};
     float Integral_Error{0.0f};
 };
-
-inline float abs(float u) {
-    if (u<0.0f) return -u;
-    else return u;
-}
 
 inline float clamp(float u, float min, float max) {
     if (u > max) return max;

@@ -30,10 +30,12 @@ struct FDCANMember {
     FDCANMember() = delete;
 
     FDCANMember(uint16_t _rx_id, uint16_t _tx_id, FDCAN_HandleTypeDef* _fdcan_handle, void* _parent_ptr,
-                void (*_fdcan_callback)(struct FDCANMember*), void* bus_ptr)
+                void (*_fdcan_callback)(struct FDCANMember*), void* _bus_ptr)
         : rx_id(_rx_id), tx_id(_tx_id), fdcan_handle(_fdcan_handle),
-          parent_ptr(_parent_ptr), fdcan_callback(_fdcan_callback) {
+          fdcan_callback(_fdcan_callback), parent_ptr(_parent_ptr), bus_ptr(_bus_ptr) {
     };
+
+    ~FDCANMember() = default;
 };
 
 // 每一路FDCAN总线有Bus一个对象，用于管理总线上的成员
@@ -46,9 +48,6 @@ public:
 
     FDCANBus(FDCAN_HandleTypeDef* fdcan_handle, uint8_t max_members)
         : fdcan_handle(fdcan_handle), max_member_cnt(max_members) {
-
-        // FDCAN_Init();
-
         this->tx_header.IdType = FDCAN_STANDARD_ID;
         this->tx_header.TxFrameType = FDCAN_DATA_FRAME;
         this->tx_header.DataLength = FDCAN_DLC_BYTES_8;
@@ -71,7 +70,13 @@ public:
                                 void* parent_ptr, void (*fdcan_callback)(struct FDCANMember*));
     bool Transmit(FDCANMember* member);
 
-    ~FDCANBus() = default;
+    ~FDCANBus() {
+        for (uint8_t i = 0; i < max_member_cnt; i++) {
+            if (members[i] != nullptr) {
+                delete members[i];
+            }
+        }
+    };
 };
 
 

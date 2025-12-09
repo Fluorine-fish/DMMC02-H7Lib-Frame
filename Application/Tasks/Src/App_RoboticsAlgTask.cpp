@@ -68,9 +68,8 @@ void Target_Remap(float *target) {
 }
 
 void App_RobiticsAlgTask(void *argument) {
-    DWT_Init();
-    TickType_t xLastWakeTime;
-    const TickType_t xFrequency = pdMS_TO_TICKS(1);  // 1ms任务周期
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    const TickType_t xFrequency = pdMS_TO_TICKS(2);  // 2ms任务周期
 
     while (1) {
         uint32_t start = DWT_GetCycle();

@@ -6,15 +6,11 @@
 *   @version 1.0
 *   @note
 */
-#include "App_DebugTask.h"
+#include "App_TaksPubic.h"
 #include "cmsis_os2.h"
 
 void App_DebugTask(void *argument) {
-
-
     while (1) {
-
-
         osDelay(1);
     }
 }
