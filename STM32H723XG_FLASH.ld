@@ -76,16 +76,16 @@ SECTIONS
 /**====================================User Code Begin====================================**/
    .dtcm_data :
    {
-    . = ALIGN(8);
+    . = ALIGN(4);
     KEEP(*(.dtcm_data)) /* DTCMRAM data */
-    . = ALIGN(8);
+    . = ALIGN(4);
    } >DTCMRAM
   /* User FreeRTOS task stack goes into DTCMRAM */
   .userstack :
   {
-    . = ALIGN(8);
+    . = ALIGN(4);
     KEEP(*(.userstack)) /* userstack data */
-    . = ALIGN(8);
+    . = ALIGN(4);
   } >USERTASK_STAKE
 /**=====================================User Code End=====================================**/
 

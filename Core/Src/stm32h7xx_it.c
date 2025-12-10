@@ -41,7 +41,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-
+volatile uint32_t mmfar = 0;
+volatile uint32_t sp    = 0;   // 异常时的 PSP
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -91,7 +92,8 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
-
+  mmfar = SCB->MMFAR;
+  sp    = __get_PSP();   // 异常时的 PSP
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {

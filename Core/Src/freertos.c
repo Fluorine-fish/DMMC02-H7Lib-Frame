@@ -57,7 +57,7 @@ const osThreadAttr_t DebugTask_attributes = {
 };
 /* Definitions for RobiticsAlgTask */
 osThreadId_t RobiticsAlgTaskHandle;
-uint32_t RobiticsAlgTaskBuffer[ 2048 ];
+uint32_t RobiticsAlgTaskBuffer[ 4096 ];
 osStaticThreadDef_t RobiticsAlgTaskControlBlock;
 const osThreadAttr_t RobiticsAlgTask_attributes = {
   .name = "RobiticsAlgTask",
@@ -74,6 +74,11 @@ const osThreadAttr_t Chassis_Task_attributes = {
   .stack_size = 1024 * 4,
   .priority = (osPriority_t) osPriorityAboveNormal,
 };
+/* Definitions for RoboticAlgMutex */
+osMutexId_t RoboticAlgMutexHandle;
+const osMutexAttr_t RoboticAlgMutex_attributes = {
+  .name = "RoboticAlgMutex"
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -87,6 +92,18 @@ extern void App_ChassisTask(void *argument);
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
+/* Hook prototypes */
+void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTaskName);
+
+/* USER CODE BEGIN 4 */
+void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTaskName)
+{
+   /* Run time stack overflow checking is performed if
+   configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2. This hook function is
+   called if a stack overflow is detected. */
+}
+/* USER CODE END 4 */
+
 /**
   * @brief  FreeRTOS initialization
   * @param  None
@@ -98,11 +115,14 @@ void MX_FREERTOS_Init(void) {
     .name = "RobiticsAlgTask",
     .cb_mem = &RobiticsAlgTaskControlBlock,
     .cb_size = sizeof(RobiticsAlgTaskControlBlock),
-    .stack_mem = &user_stack[0],
+    .stack_mem = user_stack,
     .stack_size = sizeof(RobiticsAlgTaskBuffer),
     .priority = (osPriority_t) osPriorityAboveNormal1,
   };
   /* USER CODE END Init */
+  /* Create the mutex(es) */
+  /* creation of RoboticAlgMutex */
+  RoboticAlgMutexHandle = osMutexNew(&RoboticAlgMutex_attributes);
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */

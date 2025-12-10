@@ -14,7 +14,7 @@
 void FDCAN_Init();
 
 // 给每一个使用FDCAN的模块分配一个成员
-struct FDCANMember {
+struct alignas(4) FDCANMember {
     uint16_t rx_id{0x00};                                 //发送ID
     uint16_t tx_id{0x00};                                 //接收ID
     FDCAN_HandleTypeDef* fdcan_handle{nullptr};           //fdcan句柄，用于校验
@@ -39,7 +39,7 @@ struct FDCANMember {
 };
 
 // 每一路FDCAN总线有Bus一个对象，用于管理总线上的成员
-class FDCANBus {
+class alignas(4) FDCANBus {
 public:
     /**
      * @brief 不允许默认初始化，必须填入FDCAN参数
@@ -47,20 +47,9 @@ public:
     FDCANBus() = delete;
 
     FDCANBus(FDCAN_HandleTypeDef* fdcan_handle, uint8_t max_members)
-        : fdcan_handle(fdcan_handle), max_member_cnt(max_members) {
-        this->tx_header.IdType = FDCAN_STANDARD_ID;
-        this->tx_header.TxFrameType = FDCAN_DATA_FRAME;
-        this->tx_header.DataLength = FDCAN_DLC_BYTES_8;
-        this->tx_header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;  // 传输节点error activate
-        this->tx_header.BitRateSwitch = FDCAN_BRS_OFF;           //经典CAN，不使用可变波特率
-        this->tx_header.FDFormat = FDCAN_CLASSIC_CAN;            //配置成经典CAN帧格式
-        this->tx_header.TxEventFifoControl = FDCAN_NO_TX_EVENTS; //不存储Tx Event事件
-        this->tx_header.MessageMarker = 0;
-    };
+        : fdcan_handle(fdcan_handle), max_member_cnt(max_members) {};
 
     FDCAN_HandleTypeDef* fdcan_handle; //fdcan句柄
-    FDCAN_TxHeaderTypeDef tx_header;   //fdcan发送报文配置
-
     uint8_t member_cnt{0};     //包含的成员数目
     uint8_t max_member_cnt{8}; //最大成员数目
     FDCANMember* members[8]    //成员指针数组

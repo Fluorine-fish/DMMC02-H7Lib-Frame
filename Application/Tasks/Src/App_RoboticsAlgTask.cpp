@@ -14,7 +14,7 @@
 #include "Bsp_dwt.h"
 
 // 自定义的栈空间 分配在dtcm_datae区
-__attribute__((section(".dtcm_data"))) uint32_t user_stack[ 2048 ];
+__attribute__((section(".dtcm_data"))) uint32_t alignas(4) user_stack [ 4096 ] = {};
 
 __attribute__((section(".dtcm_data"))) float mess[6] = {1.32f, 0.649f, 0.642f, 0.493f, 0.488f, 0.009};
 // link质心位置原始数据
@@ -52,10 +52,11 @@ __attribute__((section(".dtcm_data"))) robotics::Serial_Link<6> miniArm(links);
 __attribute__((section(".dtcm_data")))float gain[6] = {0.5f, 1.15f, 1.2f, 0.3f, 1.0f, 0.5f};
 float us;
 
+__attribute__((section(".dtcm_data"))) Matrixf<6,1>torque = matrixf::zeros<6,1>();
+
 //算法输入值
 float FeedBack_Position[6] = {};
-__attribute__((section(".dtcm_data")))float JointTorque[6];
-float FeedForward_Torque[6];
+float FeedForward_Torque[6] = {};
 
 void Target_Remap(float *target) {
     if (!target) return;
@@ -67,24 +68,38 @@ void Target_Remap(float *target) {
 
 }
 
+UBaseType_t uxHighWaterMark;
+extern osMutexId_t RoboticAlgMutexHandle;
+
 void App_RobiticsAlgTask(void *argument) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
     const TickType_t xFrequency = pdMS_TO_TICKS(2);  // 2ms任务周期
 
     while (1) {
-        uint32_t start = DWT_GetCycle();
+        if (osMutexAcquire(RoboticAlgMutexHandle,pdMS_TO_TICKS(1)) == osOK) {
+            uint32_t start = DWT_GetCycle();
 
-        Matrixf<6,1>q = FeedBack_Position;
-        Matrixf<6, 1>torque = miniArm.rne(q);
+            torque = miniArm.rne(FeedBack_Position);
+            osMutexRelease(RoboticAlgMutexHandle);
 
-        for (uint8_t i = 0; i < 6; i++) {
-            if (abs(torque[i][0]) > 0.01f) FeedForward_Torque[i] = torque[i][0];
-            else FeedForward_Torque[i] = 0;
+            uint32_t end = DWT_GetCycle();
+
+            us = DWT_GetMicroseconds(start, end);
         }
 
-        uint32_t end = DWT_GetCycle();
+        if (osMutexAcquire(RoboticAlgMutexHandle,pdMS_TO_TICKS(1)) == osOK) {
+            for (uint8_t i = 0; i < 6; i++) {
+                float tmp_torque = torque[i][0];
+                if (fabsf(tmp_torque) > 0.01f) {
+                    FeedForward_Torque[i] = tmp_torque * gain[i];
+                }else {
+                    FeedForward_Torque[i] = 0.0f;
+                }
+            }
+            osMutexRelease(RoboticAlgMutexHandle);
+        }
 
-        us = DWT_GetMicroseconds(start, end);
+        uxHighWaterMark = uxTaskGetStackHighWaterMark(NULL);
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
 }

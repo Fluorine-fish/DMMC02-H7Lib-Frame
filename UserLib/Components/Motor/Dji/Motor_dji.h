@@ -70,20 +70,20 @@ public:
         switch (config.type) {
             case DJI_GM6020:
                 if (motor->motor_id > 0 && motor->motor_id < 5)
-                    motor->fdcan_member = fdcan1.MemberRegister(0x1FE, motor->motor_id + 0x204, config.hfdcan,
+                    motor->fdcan_member = bus->MemberRegister(0x1FE, motor->motor_id + 0x204, config.hfdcan,
                                                                 motor, DJIMotorDecode);
                 else if (motor->motor_id > 4 && motor->motor_id < 8) {
-                    motor->fdcan_member = fdcan1.MemberRegister(0x2FE, motor->motor_id + 0x204, config.hfdcan,
+                    motor->fdcan_member = bus->MemberRegister(0x2FE, motor->motor_id + 0x204, config.hfdcan,
                                                                 motor, DJIMotorDecode);
                 }
                 break;
             case DJI_M3508:
             case DJI_M2006:
                 if (motor->motor_id > 0 && motor->motor_id < 5)
-                    motor->fdcan_member = fdcan1.MemberRegister(0x200, motor->motor_id + 0x200, config.hfdcan,
+                    motor->fdcan_member = bus->MemberRegister(0x200, motor->motor_id + 0x200, config.hfdcan,
                                                                 motor, DJIMotorDecode);
                 else if (motor->motor_id > 4 && motor->motor_id < 8) {
-                    motor->fdcan_member = fdcan1.MemberRegister(0x1FF, motor->motor_id + 0x200, config.hfdcan,
+                    motor->fdcan_member = bus->MemberRegister(0x1FF, motor->motor_id + 0x200, config.hfdcan,
                                                                 motor, DJIMotorDecode);
                 }
                 break;
@@ -120,7 +120,6 @@ public:
     float out_position{0.0f}; //电机输出轴角度（-PI~PI）
     float out_velocity{0.0f}; //电机输出轴速度（rpm）
     int16_t output{0};        //电机控制输出值
-    bool is_invalid{false};
 
     void Ctrl(int16_t target_current);
     void Ctrl(float target_velocity);
