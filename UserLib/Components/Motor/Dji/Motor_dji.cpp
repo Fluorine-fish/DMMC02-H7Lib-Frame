@@ -46,7 +46,7 @@ void DJIMotor::Ctrl(float target_velocity) {
 void DJIMotor::Ctrl(float max_velocity, float target_position) {
     if (angle_pid == nullptr || velocity_pid == nullptr) return;
     float target_velocity = angle_pid->Calc(target_position, this->out_position);
-    target_velocity = clamp(target_position, -max_velocity, max_velocity);
+    target_velocity = clamp(target_velocity, -max_velocity, max_velocity);
     this->output = static_cast<int16_t>(velocity_pid->Calc(target_velocity, this->out_velocity));
 }
 
@@ -78,8 +78,5 @@ void DJIMotorGroup::Transmit() {
         this->fdcan_member->tx_buffer[7] = 0x00;
     }
 
-
-    if (!this->fdcan_member->bus_ptr) return;
-    auto fdcan_bus = static_cast<FDCANBus*>(this->fdcan_member->bus_ptr);
-    fdcan_bus->Transmit(this->fdcan_member);
+    fdcan_member->Transmit();
 }

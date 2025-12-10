@@ -73,7 +73,9 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+  SCB->CCR &= ~(SCB_CCR_UNALIGN_TRP_Msk);   /* 清 0，关闭非对齐报错 */
+  __DSB();                                  /* 保证配置生效 */
+  __ISB();
   /* USER CODE END 1 */
 
   /* MPU Configuration--------------------------------------------------------*/

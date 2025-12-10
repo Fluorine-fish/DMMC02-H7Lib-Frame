@@ -36,6 +36,8 @@ struct alignas(4) FDCANMember {
     };
 
     ~FDCANMember() = default;
+
+    bool Transmit();
 };
 
 // 每一路FDCAN总线有Bus一个对象，用于管理总线上的成员
@@ -57,7 +59,6 @@ public:
 
     FDCANMember* MemberRegister(uint16_t _txid, uint16_t _rxid, FDCAN_HandleTypeDef* fdcan_handle,
                                 void* parent_ptr, void (*fdcan_callback)(struct FDCANMember*));
-    bool Transmit(FDCANMember* member);
 
     ~FDCANBus() {
         for (uint8_t i = 0; i < max_member_cnt; i++) {

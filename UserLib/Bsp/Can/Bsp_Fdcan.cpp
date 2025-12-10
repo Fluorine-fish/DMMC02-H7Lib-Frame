@@ -24,7 +24,7 @@ FDCAN_FilterTypeDef FDCAN1_FIFO0_Filter = {
 };
 FDCAN_FilterTypeDef FDCAN1_FIFO1_Filter = {
     .IdType = FDCAN_STANDARD_ID,
-    .FilterIndex = 1, // 过滤器编号
+    .FilterIndex = 0, // 过滤器编号
     .FilterType = FDCAN_FILTER_MASK, // 过滤器 Mask 模式 关乎到 ID1ID2 的配置
     .FilterConfig = FDCAN_FILTER_TO_RXFIFO1,
     .FilterID1 = 0x00000000, // 过滤器 ID1，只要 ID2 配置为 0x00000000，就不会过滤任何 ID
@@ -32,7 +32,7 @@ FDCAN_FilterTypeDef FDCAN1_FIFO1_Filter = {
 };
 FDCAN_FilterTypeDef FDCAN2_FIFO0_Filter = {
     .IdType = FDCAN_STANDARD_ID,
-    .FilterIndex = 2, // 过滤器编号
+    .FilterIndex = 1, // 过滤器编号
     .FilterType = FDCAN_FILTER_MASK, // 过滤器 Mask 模式 关乎到 ID1ID2 的配置
     .FilterConfig = FDCAN_FILTER_TO_RXFIFO0,
     .FilterID1 = 0x00000000, // 过滤器 ID1，只要 ID2 配置为 0x00000000，就不会过滤任何 ID
@@ -40,14 +40,14 @@ FDCAN_FilterTypeDef FDCAN2_FIFO0_Filter = {
 };
 FDCAN_FilterTypeDef FDCAN2_FIFO1_Filter = {
     .IdType = FDCAN_STANDARD_ID,
-    .FilterIndex = 3, // 过滤器编号
+    .FilterIndex = 1, // 过滤器编号
     .FilterType = FDCAN_FILTER_MASK, // 过滤器 Mask 模式 关乎到 ID1ID2 的配置
     .FilterConfig = FDCAN_FILTER_TO_RXFIFO1,
     .FilterID1 = 0x00000000, // 过滤器 ID1，只要 ID2 配置为 0x00000000，就不会过滤任何 ID
     .FilterID2 = 0x00000000, // 过滤器 ID2
 };FDCAN_FilterTypeDef FDCAN3_FIFO0_Filter = {
     .IdType = FDCAN_STANDARD_ID,
-    .FilterIndex = 4, // 过滤器编号
+    .FilterIndex = 2, // 过滤器编号
     .FilterType = FDCAN_FILTER_MASK, // 过滤器 Mask 模式 关乎到 ID1ID2 的配置
     .FilterConfig = FDCAN_FILTER_TO_RXFIFO0,
     .FilterID1 = 0x00000000, // 过滤器 ID1，只要 ID2 配置为 0x00000000，就不会过滤任何 ID
@@ -55,7 +55,7 @@ FDCAN_FilterTypeDef FDCAN2_FIFO1_Filter = {
 };
 FDCAN_FilterTypeDef FDCAN3_FIFO1_Filter = {
     .IdType = FDCAN_STANDARD_ID,
-    .FilterIndex = 5, // 过滤器编号
+    .FilterIndex = 2, // 过滤器编号
     .FilterType = FDCAN_FILTER_MASK, // 过滤器 Mask 模式 关乎到 ID1ID2 的配置
     .FilterConfig = FDCAN_FILTER_TO_RXFIFO1,
     .FilterID1 = 0x00000000, // 过滤器 ID1，只要 ID2 配置为 0x00000000，就不会过滤任何 ID
@@ -248,12 +248,9 @@ FDCANMember* FDCANBus::MemberRegister(uint16_t _txid, uint16_t _rxid, FDCAN_Hand
     return member;
 }
 
-bool FDCANBus::Transmit(FDCANMember *member) {
-    if (member == nullptr) return false;
-    if (member->fdcan_handle != this->fdcan_handle) return false;
-
+bool FDCANMember::Transmit() {
     uint8_t can_tx_cnt = 0;
-    while (HAL_FDCAN_GetTxFifoFreeLevel(member->fdcan_handle) == 0) {
+    while (HAL_FDCAN_GetTxFifoFreeLevel(fdcan_handle) == 0) {
         // 检查发送缓冲区直到有空闲或超时退出
         can_tx_cnt++;
         if (can_tx_cnt >= 100) {
@@ -270,10 +267,10 @@ bool FDCANBus::Transmit(FDCANMember *member) {
     header.FDFormat = FDCAN_CLASSIC_CAN;            //配置成经典CAN帧格式
     header.TxEventFifoControl = FDCAN_NO_TX_EVENTS; //不存储Tx Event事件
     header.MessageMarker = 0;
-    header.Identifier = member->tx_id;
+    header.Identifier = tx_id;
 
-    if (HAL_FDCAN_AddMessageToTxFifoQ(member->fdcan_handle,
-        &header,member->tx_buffer) == HAL_OK) {
+    if (HAL_FDCAN_AddMessageToTxFifoQ(fdcan_handle,
+        &header,tx_buffer) == HAL_OK) {
         return true;
     }
     return false;

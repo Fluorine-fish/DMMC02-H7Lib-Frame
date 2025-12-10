@@ -21,21 +21,6 @@ extern FDCANBus fdcan1;
 extern FDCANBus fdcan2;
 extern FDCANBus fdcan3;
 
-// DM的解码转换函数
-static float uint_to_float(int32_t x_int, float x_min, float x_max, int32_t bits) {
-    /// converts unsigned int to float, given range and number of bits ///
-    float span = x_max - x_min;
-    float offset = x_min;
-    return ((float)x_int) * span / ((float)((1 << bits) - 1)) + offset;
-}
-
-static int32_t float_to_uint(float x, float x_min, float x_max, int32_t bits) {
-    /// Converts a float to an unsigned int, given range and number of bits ///
-    float span = x_max - x_min;
-    float offset = x_min;
-    return (int32_t)((x - offset) * ((float)((1 << bits) - 1)) / span);
-}
-
 void DMMotorDecode(FDCANMember* fdcan_member);
 
 typedef enum alignas(4) {
@@ -50,6 +35,18 @@ typedef enum alignas(4) {
     DM_POSITION, // 位置速度模式
     DM_VELOCITY, // 速度模式
 } DMCtrlMode_e;
+
+typedef enum alignas(4) {
+    DM_DISABLE = 0x00,
+    DM_ENABLE = 0x01,
+    DM_OVERVOLTAGE = 0x08,
+    DM_LESSVOLTAGE = 0x09,
+    DM_OVERCURRENT = 0x0A,
+    DM_MOSOVERTEMP = 0x0B,
+    DM_ROTOROVERTEMP = 0x0C,
+    DM_COMMLOST = 0x0D,
+    DM_OVERLOAD = 0x0E,
+} DMMotorState_e;
 
 typedef struct alignas(4) {
     float PMAX;
@@ -68,6 +65,8 @@ typedef struct alignas(4) {
 } DMMotorConfig_s;
 
 typedef struct alignas(4) {
+    uint8_t ID;
+    uint8_t ERR;
     uint16_t POS;
     uint16_t VEL;
     uint16_t T;
@@ -81,6 +80,7 @@ private:
         : type(config.type),
           can_id(config.can_id),
           master_id(config.master_id),
+          motor_params(config.motor_params),
           angle_pid(new Pid(config.angle_pid_param)),
           velocity_pid(new Pid(config.velocity_pid_param)) {
     };
@@ -134,6 +134,7 @@ public:
     uint8_t master_id{0x00};
     DMMotorParams_s motor_params{};
     DMMotorFeedback_s feedback{};
+    DMMotorState_e motor_state{DM_DISABLE};
 
     FDCANMember* fdcan_member{nullptr};
     Pid* angle_pid{nullptr};
@@ -141,15 +142,19 @@ public:
 
     float out_position{0.0f}; //电机输出轴位置 （-PI~PI）
     float out_velocity{0.0f}; //电机输出速度（rad/s）
-    float output{0.0f};       //电机输出力矩
+    float out_torque{0.0f};   //电机输出力矩
+    float output{0.0f};       //电机目标力矩
 
-    void Transmit();
+    void Enable();
+    void Disable();
 
     void MITCtrl(float target_torque);
     void MITCtrl(double target_velocity);
     void MITCtrl(float target_velocity, float target_position);
+    void MITCtrl(float position, float velocity, float kp, float kd, float torque);
 
     void VelocityCtlr(float target_velocity);
+    void PositionVelocityCtlr(float target_velocity, float target_position);
 };
 
 #endif //MOTOR_DM_H

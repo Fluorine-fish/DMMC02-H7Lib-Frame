@@ -17,8 +17,8 @@ DJIMotorConfig_s M3508config_1{
     .id = 1,
     .hfdcan = &hfdcan1,
     .velocity_pid_param = {
-        .kp = 120.0f,
-        .ki = 60.0f,
+        .kp = 100.0f,
+        .ki = 40.0f,
         .kd = 0.0f,
         .i_out_max = 3000,
         .out_max = 10000,
@@ -26,7 +26,7 @@ DJIMotorConfig_s M3508config_1{
     .reduction_ratio = 19,
 };
 
-float target_velocity = 10.0f;
+float target_velocity = 50.0f;
 extern osMutexId_t RoboticAlgMutexHandle;
 extern float FeedBack_Position[6];
 
@@ -35,7 +35,7 @@ void App_ChassisTask(void *argument) {
 
     while (1) {
         M3508Group1->motors[0]->Ctrl(target_velocity);
-        M3508Group1->Transmit();
+        // M3508Group1->Transmit();
 
         if (osMutexAcquire(RoboticAlgMutexHandle, pdMS_TO_TICKS(1)) == osOK) {
             FeedBack_Position[1] = M3508Group1->motors[0]->out_position;
